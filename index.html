@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Phiếu học tập số - Toán học & Tài chính (Online)</title>
+<style>
+  body { font-family: system-ui, -apple-system, Arial, sans-serif; margin: 0; background: #f5f7fb; }
+  header { background: #0f3d68; color: #fff; padding: 16px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  .card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  h2 { margin-top: 0; font-size: 1.25rem; color: #0f3d68; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  label { font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 4px; }
+  input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+  button { padding: 10px 16px; border: none; border-radius: 6px; background: #0f3d68; color: #fff; cursor: pointer; font-weight: 600; transition: 0.2s; }
+  button:hover { opacity: 0.9; }
+  button:disabled { background: #ccc; cursor: not-allowed; }
+  button.secondary { background: #6c7aa1; }
+  button.warn { background: #b13a3a; }
+  .result { margin-top: 10px; padding: 12px; background: #eef3fb; border-radius: 8px; border-left: 4px solid #0f3d68; }
+  .hidden { display: none !important; }
+  footer { text-align: center; color: #666; padding: 12px; font-size: 0.8rem; margin-top: 20px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 8px 16px; border-radius: 999px; background: #e5ebf7; cursor: pointer; font-weight: 500; transition: 0.2s; }
+  .tab.active { background: #0f3d68; color: #fff; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9rem; }
+  th, td { border: 1px solid #dfe6f3; padding: 8px; text-align: right; }
+  th { background: #f0f4fb; text-align: center; font-weight: 600; }
+  .note { font-size: 0.85rem; color: #666; margin-top: 4px; font-style: italic; }
+  .pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#e5ebf7; margin-right:6px; margin-bottom: 6px; font-size: 0.9rem; }
+  .level-green { color: #15803d; font-weight: bold; }
+  .level-yellow { color: #b45309; font-weight: bold; }
+  .level-red { color: #b91c1c; font-weight: bold; }
+  #pieChart { max-width: 300px; margin: 10px auto; display: block; }
+  
+  /* Loading Overlay */
+  #loading { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 999; flex-direction: column; }
+  .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0f3d68; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-bottom: 10px;}
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loading" class="hidden">
+  <div class="spinner"></div>
+  <div id="loadingText">Đang xử lý...</div>
+</div>
+
+<header>
+  <h1>Phiếu học tập số - Toán học & Tài chính</h1>
+  <p>THPT NGUYỄN THÁI BÌNH - TỔ TOÁN (Online Version)</p>
+</header>
+
+<main>
+  <!-- CONFIG ALERT -->
+  <div id="config-alert" style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ffeeba;">
+    ⚠️ <b>Lưu ý cho Giáo viên:</b> Hãy mở file HTML này bằng Notepad/Code Editor và dán link Google Apps Script vào biến <code>API_URL</code> ở dòng code cuối cùng để kích hoạt tính năng Nộp bài Online.
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('k10', event)">Khối 10</div>
+    <div class="tab" onclick="showTab('k11', event)">Khối 11</div>
+    <div class="tab" onclick="showTab('teacher', event)">Dashboard Giáo viên</div>
+  </div>
+
+  <!-- KHỐI 10 -->
+  <section id="k10">
+    <div class="card">
+      <h2>1) Phân bổ tiền cá nhân (Quy tắc 6 chiếc lọ / 50-30-20)</h2>
+      <div class="row">
+        <div><label>Họ và tên:</label><input id="name10" placeholder="VD: Nguyễn Văn A"/></div> 
+        <div><label>Lớp:</label><input id="class10" placeholder="VD: 10C1"/></div>
+      </div>
+      <div class="row">
+        <div><label>Tổng thu nhập/tiền tiêu vặt (đ)</label><input id="t10_total" type="number" /></div>
+        <div><label>Chi thiết yếu (ăn uống, đi lại) (đ)</label><input id="t10_study" type="number" /></div>
+        <div><label>Chi hưởng thụ/Sở thích (đ)</label><input id="t10_fun" type="number" /></div>
+        <div><label>Tiết kiệm/Đầu tư (đ)</label><input id="t10_save" type="number" /></div>
+      </div>
+      <button onclick="calcPercent()">Tính toán & NỘP BÀI</button>
+      <div id="t10_result" class="result hidden"></div>
+    </div>
+
+    <div class="card">
+      <h2>2) Công cụ tính: Tiết kiệm gửi góp (cộng dồn)</h2>
+      <div class="row">
+        <div><label>Số tiền ban đầu (đ)</label><input id="t10_init" type="number" /></div>
+        <div><label>Mỗi tháng thêm vào (đ)</label><input id="t10_add" type="number" /></div>
+        <div><label>Số tháng dự kiến</label><input id="t10_months" type="number" /></div>
+      </div>
+      <button class="secondary" onclick="calcSaving()">Xem bảng dòng tiền</button>
+      <div id="t10_table" class="result hidden"></div>
+    </div>
+  </section>
+
+  <!-- KHỐI 11 -->
+  <section id="k11" class="hidden">
+    <div class="card">
+      <h2>3) Gửi tiền ngân hàng (Công thức Lãi kép)</h2>
+      <div class="row">
+        <div><label>Họ và tên:</label><input id="name11" placeholder="VD: Trần Thị B"/></div>
+        <div><label>Lớp:</label><input id="class11" placeholder="VD: 11B4"/></div>
+      </div>
+      <div class="row">
+        <div><label>P – Số tiền gửi ban đầu (đ)</label><input id="k11_p" type="number" /></div>
+        <div><label>r – Lãi suất năm (%)</label><input id="k11_r" type="number" /></div>
+        <div><label>n – Số năm gửi</label><input id="k11_n" type="number" /></div>
+      </div>
+      <button onclick="calcCompound()">Tính lãi kép & NỘP BÀI</button>
+      <div id="k11_result" class="result hidden"></div>
+    </div>
+
+    <div class="card">
+      <h2>4) So sánh trực quan: Lãi đơn vs Lãi kép</h2>
+      <div class="row">
+        <div><label>P (đ)</label><input id="k11_p2" type="number" /></div>
+        <div><label>r (%/năm)</label><input id="k11_r2" type="number" /></div>
+        <div><label>n (năm)</label><input id="k11_n2" type="number" /></div>
+      </div>
+      <button class="secondary" onclick="compareInterest()">Tạo bảng so sánh</button>
+      <div id="k11_table" class="result hidden"></div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD GIÁO VIÊN -->
+  <section id="teacher" class="hidden">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+        <h2>Dashboard tổng hợp (Online)</h2>
+        <button onclick="refreshDashboard()" class="secondary" style="font-size:0.9rem;">🔄 Cập nhật dữ liệu từ Google Sheet</button>
+      </div>
+      <p class="note">Dữ liệu được tải trực tiếp từ Google Sheet của giáo viên.</p>
+      
+      <div class="row" style="margin-top:15px">
+        <div class="pill">Tổng bài nộp K10: <b id="cnt10">...</b></div>
+        <div class="pill">Tổng bài nộp K11: <b id="cnt11">...</b></div>
+        <div class="pill">Tỉ lệ tiết kiệm TB (K10): <b id="avgSave10">...</b></div>
+        <div class="pill">Vốn gửi TB (K11): <b id="avgP11">...</b></div>
+      </div>
+
+      <div id="analysis" class="result" style="margin-top:10px;">Đang tải dữ liệu...</div>
+      
+      <canvas id="pieChart" width="300" height="300"></canvas>
+      
+      <div id="ranking" class="result" style="margin-top:10px;"></div>
+      
+      <div class="row" style="margin-top:10px">
+        <a id="linkSheet" href="#" target="_blank" style="text-decoration:none">
+          <button style="background:#107c41;">Mở Google Sheet gốc</button>
+        </a>
+      </div>
+      
+      <h3>Chi tiết 20 bài nộp gần nhất</h3>
+      <div id="teacher_table" class="result"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  © Hệ thống Toán Tài Chính Online.<br>
+  Yêu cầu kết nối Internet để nộp bài và xem thống kê.
+</footer>
+
+<script>
+// ==========================================================
+// CẤU HÌNH KẾT NỐI GOOGLE SHEET
+// Hãy thay thế link bên dưới bằng link Web App của bạn
+// LƯU Ý: Link phải kết thúc bằng chữ "/exec", KHÔNG PHẢI "/edit"
+const API_URL = "https://script.google.com/macros/s/AKfycbz3QbgYS4t45AzOKUSl9Qqk_HeYCHMeFojL8DqEgLt3NITfLlnu4sLFgS6M3Xy6bB72/exec";
+// ==========================================================
+
+// Kiểm tra xem người dùng đã dán link chưa
+if(API_URL.includes("DÁN_LINK") || !API_URL.endsWith("/exec")) {
+  document.getElementById('config-alert').style.display = 'block';
+  // Nếu dán sai link edit, hiển thị cảnh báo cụ thể
+  if(API_URL.includes("/edit")) {
+      document.getElementById('config-alert').innerHTML = "⚠️ <b>LỖI LINK:</b> Bạn đang dán link trình sửa code (đuôi /edit).<br>Hãy vào Deploy > Lấy link Web App (đuôi /exec).";
+  }
+} else {
+  document.getElementById('config-alert').style.display = 'none';
+}
+
+function showLoading(show, text="Đang xử lý...") {
+  const el = document.getElementById('loading');
+  document.getElementById('loadingText').innerText = text;
+  if(show) el.classList.remove('hidden');
+  else el.classList.add('hidden');
+}
+
+function showTab(id, ev){
+  document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(ev) ev.target.classList.add('active');
+  if(id==='teacher') refreshDashboard();
+}
+
+function fmt(n){ return Number(n||0).toLocaleString('vi-VN'); }
+
+// HÀM GỬI DỮ LIỆU ĐI (POST)
+async function sendData(data) {
+  if(API_URL.includes("HAY_DAN_LINK")) {
+    alert("Lỗi: Giáo viên chưa cấu hình đường dẫn Server (API_URL).");
+    return false;
+  }
+  
+  showLoading(true, "Đang nộp bài lên hệ thống...");
+  try {
+    // Sử dụng no-cors hoặc text/plain payload để tránh lỗi CORS với Google Apps Script
+    const response = await fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors", 
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(data)
+    });
+    // Vì mode no-cors, ta không đọc được response JSON, nhưng giả định thành công nếu không văng lỗi mạng
+    return true;
+  } catch (error) {
+    console.error(error);
+    alert("Có lỗi khi kết nối server: " + error.message);
+    return false;
+  } finally {
+    showLoading(false);
+  }
+}
+
+// HÀM TÍNH TOÁN VÀ GỬI KHỐI 10
+async function calcPercent(){
+  const hoTen = document.getElementById('name10').value.trim();
+  const lop = document.getElementById('class10').value.trim();
+  const total = +document.getElementById('t10_total').value;
+  const study = +document.getElementById('t10_study').value;
+  const fun = +document.getElementById('t10_fun').value;
+  const save = +document.getElementById('t10_save').value;
+
+  if(!hoTen || !lop) { alert('Vui lòng nhập Họ tên và Lớp.'); return; }
+  if(!total){ alert('Vui lòng nhập tổng tiền.'); return; }
+
+  const sum = study + fun + save;
+  const pStudy = (study/total*100)||0, pFun=(fun/total*100)||0, pSave=(save/total*100)||0;
+  
+  let level = 'red';
+  if(pSave >= 30) level = 'green';
+  else if(pSave >= 15) level = 'yellow';
+
+  // Chuẩn bị dữ liệu gửi
+  const payload = {
+    khoi: 10, hoTen, lop,
+    val1: total, val2: study, val3: fun, val4: save,
+    level: level
+  };
+
+  const success = await sendData(payload);
+  
+  if(success) {
+    let msg = `<b>✅ Đã nộp bài thành công!</b><br>
+    Học tập: ${pStudy.toFixed(1)}%<br>
+    Giải trí: ${pFun.toFixed(1)}%<br>
+    Tiết kiệm: ${pSave.toFixed(1)}% <span class="level-${level}">(${level === 'green' ? 'Tốt' : level === 'yellow' ? 'Khá' : 'Cần cải thiện'})</span>`;
+    
+    if(Math.abs(sum - total) > 1000){ // Cho phép sai số nhỏ
+      msg += `<br><span style="color:red; font-size:0.9rem">⚠️ Tổng chi (${fmt(sum)}đ) ≠ Tổng thu (${fmt(total)}đ). Hãy kiểm tra lại.</span>`;
+    }
+    const box = document.getElementById('t10_result');
+    box.innerHTML = msg; box.classList.remove('hidden');
+  }
+}
+
+// HÀM TÍNH TOÁN VÀ GỬI KHỐI 11
+async function calcCompound(){
+  const hoTen = document.getElementById('name11').value.trim();
+  const lop = document.getElementById('class11').value.trim();
+  const P = +document.getElementById('k11_p').value;
+  const rVal = +document.getElementById('k11_r').value;
+  const r = rVal/100;
+  const n = +document.getElementById('k11_n').value;
+
+  if(!hoTen || !lop) { alert('Vui lòng nhập Họ tên và Lớp.'); return; }
+  if(P<=0 || n<=0){ alert('Vui lòng nhập P, n hợp lệ'); return; }
+
+  // Chuẩn bị dữ liệu gửi
+  const payload = {
+    khoi: 11, hoTen, lop,
+    val1: P, val2: rVal, val3: n, val4: 0, level: ''
+  };
+
+  const success = await sendData(payload);
+
+  if(success) {
+    let html = `<b>✅ Đã nộp bài! Kết quả lãi kép:</b><br><table><tr><th>Năm</th><th>Số tiền (đ)</th></tr>`;
+    for(let i=1;i<=n;i++){
+      const S = P*Math.pow(1+r, i);
+      html += `<tr><td style="text-align:center">${i}</td><td>${fmt(Math.round(S))}</td></tr>`;
+    }
+    html += `</table>`;
+    const box = document.getElementById('k11_result');
+    box.innerHTML = html; box.classList.remove('hidden');
+  }
+}
+
+// TÍNH TOÁN OFFLINE (CÔNG CỤ PHỤ)
+function calcSaving(){
+  const init = +document.getElementById('t10_init').value;
+  const add = +document.getElementById('t10_add').value;
+  const months = +document.getElementById('t10_months').value;
+  if(months <= 0){ alert('Số tháng phải > 0'); return; }
+  let html = `<table><tr><th>Tháng</th><th>Số tiền (đ)</th></tr>`;
+  let total = init;
+  for(let i=1;i<=months;i++){
+    if(i>1) total += add;
+    html += `<tr><td style="text-align:center">${i}</td><td>${fmt(total)}</td></tr>`;
+  }
+  html += `</table>`;
+  document.getElementById('t10_table').innerHTML = html; 
+  document.getElementById('t10_table').classList.remove('hidden');
+}
+
+function compareInterest(){
+  const P = +document.getElementById('k11_p2').value;
+  const r = +document.getElementById('k11_r2').value/100;
+  const n = +document.getElementById('k11_n2').value;
+  if(P<=0 || n<=0){ alert('Vui lòng nhập số liệu hợp lệ'); return; }
+  let html = `<table><tr><th>Năm</th><th>Lãi đơn (đ)</th><th>Lãi kép (đ)</th></tr>`;
+  for(let i=1;i<=n;i++){
+    const simple = P*(1 + r*i);
+    const comp = P*Math.pow(1+r, i);
+    html += `<tr><td style="text-align:center">${i}</td><td>${fmt(Math.round(simple))}</td><td>${fmt(Math.round(comp))}</td></tr>`;
+  }
+  html += `</table>`;
+  document.getElementById('k11_table').innerHTML = html;
+  document.getElementById('k11_table').classList.remove('hidden');
+}
+
+// ==========================================
+// PHẦN DASHBOARD GIÁO VIÊN (LOAD TỪ SHEET)
+// ==========================================
+
+async function refreshDashboard(){
+  if(API_URL.includes("HAY_DAN_LINK")) {
+    document.getElementById('analysis').innerText = "Chưa cấu hình API URL.";
+    return;
+  }
+
+  showLoading(true, "Đang tải dữ liệu từ Google Sheet...");
+  try {
+    const res = await fetch(API_URL); // Mặc định là GET
+    const data = await res.json();
+    
+    processData(data);
+  } catch (e) {
+    document.getElementById('analysis').innerHTML = `<span style='color:red'>Lỗi tải dữ liệu: ${e.message}. Hãy kiểm tra đường truyền hoặc quyền truy cập Script.</span>`;
+  } finally {
+    showLoading(false);
+  }
+}
+
+function processData(rawData) {
+  // rawData: [{ts, khoi, sid, val1...}, ...]
+  // Tách dữ liệu
+  const a10 = rawData.filter(x => x.khoi == 10).map(x => ({
+    ...x,
+    total: x.val1, study: x.val2, fun: x.val3, save: x.val4,
+    pSave: (x.val4 / x.val1 * 100) || 0
+  }));
+  
+  const a11 = rawData.filter(x => x.khoi == 11).map(x => ({
+    ...x,
+    P: x.val1, r: x.val2, n: x.val3
+  }));
+
+  // Update chỉ số
+  document.getElementById('cnt10').innerText = a10.length;
+  document.getElementById('cnt11').innerText = a11.length;
+  
+  const avgSave10 = a10.length ? (a10.reduce((s,x)=>s+(x.pSave||0),0)/a10.length).toFixed(1) : 0;
+  document.getElementById('avgSave10').innerText = avgSave10 + '%';
+  
+  const avgP11 = a11.length ? Math.round(a11.reduce((s,x)=>s+(+x.P||0),0)/a11.length) : 0;
+  document.getElementById('avgP11').innerText = fmt(avgP11) + ' đ';
+
+  // Phân tích mức độ (Green/Yellow/Red)
+  let green = 0, yellow = 0, red = 0;
+  a10.forEach(x => {
+    if (x.level === 'green') green++;
+    else if (x.level === 'yellow') yellow++;
+    else if (x.level === 'red') red++;
+  });
+
+  // Vẽ biểu đồ
+  drawPieChart(green, yellow, red);
+
+  // Text phân tích
+  let analysis = `<b>Phân tích tiết kiệm khối 10:</b><br>
+  - Mức Tốt (xanh): ${green} HS<br>
+  - Mức Khá (vàng): ${yellow} HS<br>
+  - Cần cải thiện (đỏ): ${red} HS<br><br>`;
+  
+  if (red > green + yellow) analysis += '⚠️ Cảnh báo: Đa số học sinh chưa có thói quen tiết kiệm tốt.';
+  else analysis += '✅ Đánh giá chung: Tình hình tài chính của lớp khá tích cực.';
+  
+  document.getElementById('analysis').innerHTML = analysis;
+
+  // Xếp hạng (Top tiết kiệm)
+  const sortedA10 = a10.slice().sort((a,b) => b.pSave - a.pSave);
+  let rankingHtml = `<b>🏆 Top 3 HS Tiết kiệm hiệu quả nhất:</b><br><ol>`;
+  sortedA10.slice(0,3).forEach((x) => {
+    rankingHtml += `<li>${x.sid} - ${x.pSave.toFixed(1)}%</li>`;
+  });
+  rankingHtml += `</ol>`;
+  document.getElementById('ranking').innerHTML = rankingHtml;
+
+  // Bảng dữ liệu thô (20 người mới nhất)
+  // Đảo ngược để thấy mới nhất trước
+  const latestData = rawData.slice().reverse().slice(0, 20);
+  let tbl = `<b>Nhật ký nộp bài (20 lượt mới nhất):</b><table><tr><th>TG</th><th>Lớp</th><th>Tên</th><th>Loại</th><th>Chi tiết</th></tr>`;
+  latestData.forEach(r => {
+    const time = new Date(r.ts).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+    let detail = '';
+    if(r.khoi == 10) detail = `Tiết kiệm: ${((r.val4/r.val1)*100).toFixed(1)}%`;
+    else detail = `Gửi ${fmt(r.val1)}đ, lãi ${r.val2}%`;
+    
+    tbl += `<tr>
+      <td style="text-align:center">${time}</td>
+      <td style="text-align:center">${r.khoi}</td>
+      <td>${r.sid}</td>
+      <td>${r.khoi==10?'Ngân sách':'Lãi kép'}</td>
+      <td>${detail}</td>
+    </tr>`;
+  });
+  tbl += '</table>';
+  document.getElementById('teacher_table').innerHTML = tbl;
+}
+
+function drawPieChart(green, yellow, red) {
+  const canvas = document.getElementById('pieChart');
+  const ctx = canvas.getContext('2d');
+  const total = green + yellow + red;
+  if(total === 0) { ctx.clearRect(0,0,300,300); return; } // Chưa có data
+  
+  const data = [green, yellow, red];
+  const colors = ['#15803d', '#f59e0b', '#dc2626'];
+  let startAngle = 0;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  data.forEach((value, i) => {
+    const sliceAngle = (value / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(150, 150);
+    ctx.arc(150, 150, 140, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+    startAngle += sliceAngle;
+  });
+}
+</script>
+</body>
+</html>
